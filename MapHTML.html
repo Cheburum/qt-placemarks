@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+    <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script type="text/javascript">
+        ymaps.ready(init);
+        var myMap;
+        var qtCallable;
+        function init(){
+            myMap = new ymaps.Map("map", {
+                center: [55.76, 37.64],
+                zoom: 15,
+                controls: ["zoomControl","typeSelector"]
+            });
+            new QWebChannel(qt.webChannelTransport, function (channel) {
+                        qtCallable = channel.objects.qtCallable;
+                    });
+        };
+        function addPlacemark(placename){
+                var geocoder = ymaps.geocode(placename);
+                geocoder.then(
+                    function(res){
+                        if(res.geoObjects.getLength()>0){
+                            qtCallable.call(placename);
+                            var coords=res.geoObjects.get(0).geometry.getCoordinates();
+                            var placemark = new ymaps.Placemark(coords);
+                            myMap.geoObjects.add(placemark);
+                            myMap.panTo(coords, {duration: 2000,zoom: 30});
+                            
+                        }else alert('Адрес не найден');
+                        },
+                    function(err){
+                        alert('Ошибка');
+                    }
+                 );
+        };
+    </script>
+        <style>
+        html, body, #map {
+            width: 100%; height: 100%; padding: 0; margin: 0;
+        }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+</body>
+</html>
